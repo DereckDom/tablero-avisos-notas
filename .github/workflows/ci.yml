@@ -1,40 +1,42 @@
-name: CI/CD para Tablero de Avisos
+name: CI para Tablero de Notas
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
+    services:
+      php-app:
+        build:
+          context: .
+          dockerfile: Dockerfile
+        ports:
+          - 8080:80
+        options: >-
+          --health-cmd="curl -f http://localhost || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
-      - name: Clonar repositorio
+      - name: 🔄 Clonar repositorio
         uses: actions/checkout@v3
 
-      - name: Configurar Python
+      - name: 🐍 Instalar Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Instalar dependencias
-        run: |
-          pip install requests pytest
+      - name: 📦 Instalar dependencias de Python
+        run: pip install requests
 
-      - name: Ejecutar pruebas
-        run: |
-          pytest test_api.py
+      - name: 🕓 Esperar a que el contenedor esté listo
+        run: sleep 15
 
-      - name: Construir imagen Docker
-        run: docker build -t danieldev/tableroavisos .
-
-      - name: Login a DockerHub
-        env:
-          DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}
-          DOCKERHUB_PASS: ${{ secrets.DOCKERHUB_PASS }}
-        run: echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
-
-      - name: Subir imagen a Docker Hub
-        run: docker push danieldev/tableroavisos
+      - name: 🧪 Ejecutar tests
+        run: python test_api.py
