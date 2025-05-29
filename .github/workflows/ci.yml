@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: 🔄 Clonar repositorio
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: 🐳 Construir imagen Docker
         run: docker build -t tableroaviso .
