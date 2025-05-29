@@ -10,22 +10,18 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      php-app:
-        build:
-          context: .
-          dockerfile: Dockerfile
-        ports:
-          - 8080:80
-        options: >-
-          --health-cmd="curl -f http://localhost || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
       - name: 🔄 Clonar repositorio
         uses: actions/checkout@v3
+
+      - name: 🐳 Construir imagen Docker
+        run: docker build -t tableroaviso .
+
+      - name: 🐳 Ejecutar contenedor en segundo plano
+        run: docker run -d -p 8080:80 --name app tableroaviso
+
+      - name: 🕓 Esperar a que el contenedor esté listo
+        run: sleep 15
 
       - name: 🐍 Instalar Python
         uses: actions/setup-python@v4
@@ -34,9 +30,6 @@ jobs:
 
       - name: 📦 Instalar dependencias de Python
         run: pip install requests
-
-      - name: 🕓 Esperar a que el contenedor esté listo
-        run: sleep 15
 
       - name: 🧪 Ejecutar tests
         run: python test_api.py
